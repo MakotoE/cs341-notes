@@ -113,3 +113,24 @@
 # Video streaming
 - Dynamic Adaptive Streaming over HTTP (DASH): Adaptive bitrate streaming protocol
 - Content Distribution Network (CDN)
+
+# Transport layer
+- Logical communication: The apparent perspective that communication between two hosts are direct. In reality, there are multiple relays along the physical structure.
+- The transport layer provides logical communication, whereas the network layer deals with physical communication
+- Socket
+  - Different doors of a network process that data can pass through. AKA port.
+  - Segments are multiplexed by adding the source and destination info to the header, and demultiplexed with the header info
+  - 0-1023 are well-known port numbers and are reserved
+
+# UDP
+- UDP characteristics
+  - Finer application level control over data control
+  - No connection establishment and no handshakes
+  - No connection state. Compared to TCP, which does maintain connection state.
+  - Small packet header overhead
+- UDP segment structure
+  - 16-bit source port #
+  - 16-bit destination port #
+  - 16-bit segment length (Including header)
+  - 16-bit checksum for header and data
+  - Payload data
