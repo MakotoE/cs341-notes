@@ -134,3 +134,54 @@
   - 16-bit segment length (Including header)
   - 16-bit checksum for header and data
   - Payload data
+  
+# Reliable data transfer protocol
+- A protocol that has ensures reliable transfer of data across a network that may be subject to data loss and corruption
+- It doesn't mean that all packets are sent without fail; it means that all such failures are reported as errors
+- Checksums and ACK acknowledgement enables:
+  - Error detection
+  - Receiver feedback: A success or error response
+  - Retransmission after an error response
+- A sequence number adds clarification to which packet an ACK is for
+- A countdown timer ensures that a lost packet can be sent again
+- Pipelined data transfer
+  - In a stop-and-wait protocol, the utilization of time and bandwidth is low
+    - U_sender = L/R / (RTT + L/R) where RTT = return trip time
+  - By sending multiple packets before ACK, utilization is higher
+  - Go-back-N protocol: If an ACK for sequence N is not returned before timeout, the Nth packet is sent again, regardless of if an ACK for N+M is received
+  - Selective repeat protocol: The sequence number of each ACK is marked. If there is an unmarked sequence number after timeout, that packet is sent again. Marked packets are never sent again.
+
+# TCP
+- Connection-oriented: A handshake must occur before the main message is transmitted
+- TCP segment
+  - A chunk of data of a data stream
+  - TCP segment header structure
+    - 32-bit sequence number field: Sequence number of segment
+    - 32-bit acknowledgement number field: Sequence number of next expected segment
+    - 16-bit receive window: Number of windows that the sender can store
+    - 4-bit Header length field
+    - Variable-length options field
+    - 6-bit flag field: ACK, RST, SYN, FIN, PSH, URG
+- Receivers send cumulative acknowledgements, or acknowledgements of the last sequence number received
+- Handling of out-of-order segments is up to the implementation, but implementations typically have a buffer to store out-of-order segments
+- Piggybacking: Delaying the ACK to send it back in the next segment
+- Timeout interval is calculated by keeping an estimated RTT
+  - Estimated RTT changes based on the sampled RTT
+  - Exponential weighted moving average: Formula to calculate estimated RTT
+  - Timeout interval is set above the estimated RTT
+    - Timeout interval = Estimated RTT + 4 * DevRTT
+- Fast retransmit: A receiver may send two duplicate ACKs after an out-of-order segment. The sender sends back the missing segment immediately, rather than waiting for timeout.
+- Slow-start: Since the receiving side's buffer and bandwidth capacity is unknown, the segment rate is slow at first
+- Flow-control: Matches the rate of data transfer for the sender and receiver so that the receiver's buffer doesn't overflow, using the receive window field
+- Congestion control
+  - With a higher rate of segments, bigger buffers, higher bandwidth, and other network resources are necessary
+  - Solution
+    - Additive increase, multiplicative decrease (AIMD)
+    - Increase segment rate until timer rate or triple ACK, which means a segment was dropped
+    - A dropped segment indicates congestion
+    - On segment loss, the segment rate is decreased
+    - Segment rate may be halved (TCP Tahoe) or decreased by one (TCP Reno)
+  - TCP CUBIC: Increases segment rate by logarithmic growth to send more segments until the limit
+  - Explicit congestion notification
+- Explicit congestion notification: A bit in the segment header that a router can set to indicate that it is experiencing congestion
+- TCP Vegas: Measurement of congestion based on RTT, not segment loss
