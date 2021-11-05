@@ -156,8 +156,10 @@
 - TCP segment
   - A chunk of data of a data stream
   - TCP segment header structure
-    - 32-bit sequence number field: Sequence number of segment
-    - 32-bit acknowledgement number field: Sequence number of next expected segment
+    - 16-bit source port
+    - 16-bit destination port
+    - 32-bit sequence number field: Byte number of segment
+    - 32-bit acknowledgement number field: Byte number of next expected segment
     - 16-bit receive window: Number of windows that the sender can store
     - 4-bit Header length field
     - Variable-length options field
@@ -185,3 +187,103 @@
   - Explicit congestion notification
 - Explicit congestion notification: A bit in the segment header that a router can set to indicate that it is experiencing congestion
 - TCP Vegas: Measurement of congestion based on RTT, not segment loss
+
+# Network layer
+- Although data in the network layer are datagrams, they are also referred to as packets
+- Forwarding
+  - Router-local action of sending a packet to the appropriate output destination
+  - Managed inside the data plane
+- Routing
+  - Network-wide process of determining end-to-end paths
+  - Managed by the control plane
+- Forwarding table: A mapping of IP ranges to output link
+- Software-defined networking: An approach to routing where software in the control plane sets forwarding tables, instead of through human management
+- The network layer only guarantees best-effort service
+  - The network layer does not guarantee in-order delivery or reliability
+
+# Router
+- Input port
+  - Physical end termination of incoming link
+  - Decapsulates (decodes) packets
+  - Uses forwarding table to get output link interface
+  - Longest prefix matching rule: Find forwarding table entry with the longest matching prefix
+  - The packet is sent to the switching fabric
+- Switching fabric
+  - Connects input ports to output ports
+  - Memory switching
+    - Old routing mechanism where a buffer stores and delivers the packet
+    - Limited to memory IO speed
+  - Bus switching
+    - The output is attached to a packet's header and sent along a bus
+    - Only one packet can cross the bus at a time
+  - Interconnect network
+    - A crossbar switch that delivers the packet without blocking
+- Output port
+  - Queues packets
+    - Size of buffer needed is B = RTT * C / sqrt(N) where C = link bandwidth and N = number of TCP flows
+  - Transmits packet to outgoing link
+  - Output order can be by FIFO or by priority of packet
+  - Weighted fair queuing discipline: A round-robin method of serving one packet per each class of priority
+- Routing processor
+  - Performs control-plane functions
+  - Communicates with remote controller to receive forwarding tables
+
+# Internet Protocol
+- IPv4 header
+  - Version (Always 4)
+  - Internet Header Length: Size of header
+  - Differentiated Services Code Point (DSCP): Specifies type of service, such as real-time or non-real-time service
+  - Explicit Congestion Notification (ECN): Congestion control
+  - Total length: Packet size
+  - Identification, flags, fragment offset: Identifies fragmented datagrams, which are datagrams broken into smaller datagrams that are reassembled at the destination
+  - Time to live: A number that limits a datagram's lifetime. Each router decrements this number by 1. When it hits 0, the datagram is discarded.
+  - Protocol: Identifies transport layer protocol, such as 6 for TCP.
+  - Header checksum: For error correction of header. Each router must recompute the checksum since a value may change. UDP and TCP have separate checksums.
+  - 32-bit source IP address
+  - 32-bit destination IP address
+  - Options: A rarely used field for setting the behavior of the datagram.
+  - Payload
+- Subnet
+  - A subdivision of an IP network
+  - Subnet mask: Used to specify the size of the subnet
+  - CIDR: Specifies prefix and mask
+  - Classful addressing: 8-, 16-, and 24-bit subnet addresses. These classes were either too small or too large for organizations, and it led to a rapid depletion of unallocated addresses.
+- The ICANN allocates blocks of addresses to ISPs. The ISPs further divides their block to individual organizations.
+- IP addresses in an organization can be manually distributed to hosts, or Dynamic Host Configuration Protocol (DHCP) can be used to do this automatically.
+- DHCP protocol
+  - DHCP discover message is sent via UDP from the connecting client to the broadcast address 255.255.255.255
+  - DHCP offer message is broadcasted to 255.255.255.255, containing the proposed address for the client (YIADDR), network mask, and address lease time
+  - Client broadcasts a DHCP request for the address
+  - DHCP acknowledges the request
+- Network address translation (NAT)
+  - The port number is used as an extension to an IP address
+  - A client is assigned a private IP address in the address space 10.0.0.0/24
+  - When a client sends a packet, a NAT router replaces the source address with a public address and a unique port number according to a NAT translation table
+  - Incoming packets have the destination address and port rewritten to the private IP address
+- IPv6 header
+  - Version (Always 6)
+  - Traffic class: Type of service
+  - Flow: Identifies a stream of packets, such as for a media stream
+  - Payload length
+  - Next header: Identifies the transport layer protocol of the payload
+  - Hop limit: Replaces TTL field in IPv6
+  - 128-bit source address
+  - 128-bit destination address
+  - Payload
+- IPv6 removes the fragmentation, checksum, and options fields
+- IPv6 transition
+  - Tunneling: Packaging IPv6 datagrams into IPv6 datagrams so that IPv4 routers can pass IPv6 datagrams
+
+# Generalized forwarding
+- Instead of destination-based forwarding, generalized forwarding is a layer 3 switch that uses header fields of different protocols in different layers
+- OpenFlow flow table
+  - Implementation of software-defined networking
+  - Match-plus-action forwarding table
+  - Each entry contains:
+    - A set of header field values: Matched to the packet
+    - A set of counters: Can include number of matched packets and time since last update
+    - A set of actions to take: For example, forwarding packet to an output port, drop the packet, modify header fields
+- Some use cases of SDNs are routers, load balancers, and firewalls
+- Middlebox
+  - An intermediary box performing functions different from those of an IP router
+  - Some examples: NAT translation, security services, load balancers
