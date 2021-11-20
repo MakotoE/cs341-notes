@@ -287,3 +287,126 @@
 - Middlebox
   - An intermediary box performing functions different from those of an IP router
   - Some examples: NAT translation, security services, load balancers
+
+# Network control plane
+- Two approaches to router control
+  - Per-router control
+    - A routing algorithm runs in every router individually
+  - Logically centralized control
+    - A centralized controller distributes forwarding tables to all routers
+    - Control agent: An agent in a router that communicates with the central controller
+
+# Routing algorithms
+- Static routing algorithm: Routing tables change very slowly, often because they are manually set
+- Dynamic routing algorithm: Routing tables are changed often due to automated systems
+- Load-sensitive algorithm
+- Link costs vary depending on the level of congestion
+  - Modern routing algorithms are load-insensitive
+- Link-state routing algorithm
+  - Used for centralized control because all link costs are known by the controller
+  - Dijkstra's algorithm is an implementation of LS routing
+    - Worst-case complexity of O(|E| + |V|log(|V|))
+- Distance-vector routing
+  - Iterative, asynchronous, and distributed
+  - For per-router controllers
+  - Bellman-Ford equation
+    - Worst-case complexity of O(|V||E|)
+  - The solution to the Bellman-Ford equation provides the forwarding tables
+  - Count-to-infinity problem
+    - A routing loop where a disconnected link causes routers to increment the cost of that link to infinity
+    - Can be avoided with poisoned reverse
+
+# Open Shortest Path First (OSPF)
+- Intra-autonomous system routing protocol
+  - Autonomous system: A group of routers that are under the same administrative control
+  - Routers store path information for their own autonomous system
+- OSPF
+  - Open standard used for intra-AS routing
+  - Uses Dijkstra's algorithm
+  - Each router is given a graph of the AS, and each router computes the shortest paths to all subnets
+  - Authenticates packets
+
+# Border Gateway Protocol (BGP)
+- Inter-autonomous system routing protocol
+- Purpose
+  - Obtain prefix reachability information
+  - Determine best routes to prefixes
+- Types of routers in autonomous systems
+  - Internal router: Connects only to hosts and routers within the AS
+  - Gateway router: Connects to internal routers of its own AS and routers of other ASs
+- Routing information is exchanged through BPG connections which are TCP-based
+- External BGP (eBGP): A BGP connection that spans two ASs
+- Internal BGP (iBGP): A BGP connection within the same AS
+- Routing information contains BGP attributes
+  - AS-PATH
+    - A list of ASNs that the advertisement has passed through
+    - A router adds their ASN to the front of the list and passes it on
+    - If a router sees its own ASN, the information is discarded as it looped back
+  - NEXT-HOP
+    - IP address of the router interface that begins the AS-PATH
+- BGP route selection priority
+  1. Local preference value
+    - A policy decision by the AS to send packets to a certain router
+  2. The route with the shortest AS-PATH is selected
+  3. Hot potato routing
+    - Packets are passed to the AS with the lowest immediate cost
+- IP-anycast
+  - Different hosts have the same IP addresses
+  - If a router sees different routes to the same address, the best route is picked
+  - It is useful for CDNs, as routers will pick the fastest CDN
+  - Also used for DNS servers
+
+# Software-defined networking (SDN)
+- Key characteristics of the SDN architecture
+  - Traditional routers only read the IP address from a packet, but SDN flow tables consider many more header fields of packets
+  - The data plane consists of switches, and the control plane consists of servers and software to manage flow tables
+  - Controllers hold network state information and control the switches
+  - Network-control applications receives state information from the controller and computes routing paths and flow tables
+  - The SDN can be programmed through APIs
+- The controller API is the northbound interface, and the switch API is the southbound interface
+- OpenFlow
+  - OpenFlow is a protocol in which the control plane communicates with the data plane
+  - The controller can send the following messages:
+    - Configuration: sets configuration parameters
+    - Modify-state: Adds or deletes flow entries and port properties
+    - Read-state: Collects statistics and counter values
+    - Send-packet: Specifies a message to send
+  - Switches can send the following messages:
+    - Flow-removed: A flow table has been removed
+    - Port-status: A port status was changed
+    - Packet-in: A packet that does not match a table entry is sent for additional processing
+- Example SDN interaction
+  1. The link between switches s1 and s2 fails. Port-status message is sent to inform the controller of the failure.
+  2. The SDN controller notifies the link-state manager
+  3. The network-control application receives notification of the link-state change
+  4. The link-state manager computes new least-cost paths
+  5. The flow table manager creates flow tables
+  6. The flow table manager sends modify-state messages to update flow tables
+
+# Internet Control Message Protocol (ICMP)
+- ICMP is for error reporting, such as unreachable hosts
+- ICMP is part of the network layer
+- Ping and traceroute use ICMP
+
+# Network management
+- Managing server: Operated by network managers and controls the network devices
+- Managed device: Network equipment such as hosts, routers, and switches
+- Data
+  - Configuration data: Device information explicitly configured by the network manager
+  - Operational data: Information that a device collects as it operates, such as the list of immediate neighbors
+  - Device statistics: Status indicators and counts
+- Network management agent: Software running in the managed device that communicates with the managing server
+- Network management protocol: A protocol that allows communication between the managing server and managed devices
+
+# Simple Network Management Protocol (SNMP)
+- Application layer protocol for conveying network-management control and information messages
+- Used to set and retrieve MIB object values on a managed device
+- Also used for sending trap messages (notifications) to a managing server
+- Some uses for MIB objects are: the number of datagrams discarded, number of carrier sense errors, and the version of a software
+
+# Network Configuration Protocol (NETCONF)
+- Similar to SNMP, NETCONF is used for setting and retrieving operational and configuration data
+- XML-based RPC
+  - YANG: Data modeling language used for NETCONF
+- Commands are applied to a set of devices
+- The difference between SNMP is that SNMP sets values on individual devices, whereas NETCONF sets the configuration of the network as a whole
