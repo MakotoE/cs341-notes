@@ -410,3 +410,102 @@
   - YANG: Data modeling language used for NETCONF
 - Commands are applied to a set of devices
 - The difference between SNMP is that SNMP sets values on individual devices, whereas NETCONF sets the configuration of the network as a whole
+
+# Link layer
+- Node: A device that runs a link-layer protocol
+- Data is transmitted in link-layer frames
+- Link layer services
+  - Framing: Data is packaged in frames
+  - Link access: A MAC protocol manages frame transmission
+  - Reliable delivery: Even though TCP ensures reliability, nodes can resend frames between links to avoid the need for end-to-end retransmission
+  - Error detection and correction: Error detection bits are included in frames to fix bit errors
+- Network adapter/network interface controller (NIC): Hardware that handles link layer responsibilities
+
+# Error detection and correction
+- Parity bit: 1 bit included with a string to detect errors. Checks that the total number of 1-bits in a string is even or odd.
+- Forward error correction: The ability to detect and correct errors without retransmission
+- Internet checksum
+  - The sum of 16-bit words of the data and the checksum should be zero
+  - Used for IP packets and TCP and UDP messages
+- Cyclic redundancy check (CRC)
+  - Better algorithm than a checksum for detecting burst errors
+
+# Multiple access link
+- Point-to-point link: A link that consists of a single sender and a single receiver
+- Broadcast link: A link that has multiple sending and receiving nodes
+- A multiple access protocol regulates transmission by nodes in a broadcast channel
+- Channel partitioning protocols
+  - Time-division multiplexing
+  - Frequency-division multiplexing
+  - Code division multiple access (CDMA)
+    - Each node is assigned a code to encode data
+    - Nodes can transmit simultaneously and receivers can still receive data
+    - Used in older mobile phone standards
+  - Random access protocol
+    - Nodes transmit frames at full rate, but when there is a collision, frames are retransmitted after a random delay
+    - Binary exponential backoff: The random delay to retransmit increases by twice the max delay of the previous transmission attempt
+    - Carrier sense multiple access with collision detection (CSMA/CD)
+      - Carrier sensing: A node listens for ongoing transmissions before transmitting to avoid collision
+      - Even if carrier sensing is used, channel collisions occur because of channel propagation delay
+      - Obsolete method for Ethernet 
+  - Taking-turns protocol
+    - Polling protocol: A master node polls each transmitter for a certain number of frames
+    - Has a polling delay
+    - Avoids collisions
+    - Token-passing protocol: Nodes exchange tokens to decide who can transmit
+  - Data Over Cable Service Interface Specification (DOCSIS)
+    - For sending data over cable
+    - Uses FDM for data transmission, and TDM to assign slots
+    - New modems can send a request for a slow using random access protocol
+
+# Switched local area network
+- MAC address
+  - A device-specific and (usually) permanent address
+  - 6 bytes or 48 bits
+  - Used in link-layer to address frames
+  - Broadcast address is FF-FF-FF-FF-FF-FF
+- Address Resolution Protocol (ARP)
+  - Translates IP addresses to MAC addresses
+- Ethernet
+  - Link and physical layer standards
+  - An Ethernet frame contains:
+    - Preamble: A wake-up and sync signal
+    - Destination address: MAC address of destination adapter
+    - Source address: MAC address of sender
+    - Type: Indicates the payload protocol
+    - Data: The payload
+    - CRC: Checksum for frame
+  - Ethernet has various flavors, such as 10, 100, 1000 MB/s, 10, 40 GB/s
+- Link-layer switch
+  - Filtering: A switch function that determines whether a frame should be forwarded or dropped
+  - Switch table: A mapping of MAC address to switch interface
+  - A switch can take one of three actions for a frame:
+    - If there is no entry for the destination address, that frame is broadcasted
+    - If the entry for the destination address has the same interface as the one the switch received the frame from, the frame is discarded
+    - If the entry for the destination address is not the same interface, the frame is forwarded to the interface
+  - Switches learn which MAC address is connected to which interface
+    - Link-layer switches works automatically, without manual configuration
+    - If no frames are received from an address within a given period of time, the entry is deleted
+  - In contrast to a hub-and-spoke LAN architecture, a mesh of switches reduces the chances of collisions
+  - Switches allow different Ethernet protocols to work together
+  - Routers are network-layer (and above) devices, whereas switches are link-layer
+- Virtual local area network (VLAN)
+  - A VLAN is a sub-division of a switched LAN that functions like a single isolated network 
+  - The ports on a switch are partitioned into VLANs
+  - A VLAN trunk can carry traffic across the VLANs
+  - A frame can contain a VLAN tag which identifies VLAN that the frame belongs to
+
+# Multiprotocol label switching (MPLS)
+- Improves forwarding speed of routers by attaching a fixed-length label to packets
+- Packets can be forwarded based on the label and not the IP headers
+- Instead of finding the longest-prefix match, the router only finds the matching label from a lookup table
+- MPLS enables multiple-path routing
+- MPLS can be used to implement VPNs
+
+# Data center networking
+- Blade: A modular server computer
+- Top of rack (TOR) switch: A switch connecting all blades in one rack
+- Border router: A router that connects the data center network to the public internet
+- Tier-2 switches connect groups of tier-3 TOR switches and tier-1 switches connect tier-2 switches
+- Load balancers operate at the tier-1 level
+- To enable fast communication within a data center network, switches are highly interconnected so that there is no bottleneck link
