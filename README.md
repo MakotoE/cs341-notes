@@ -224,6 +224,7 @@
   - Transmits packet to outgoing link
   - Output order can be by FIFO or by priority of packet
   - Weighted fair queuing discipline: A round-robin method of serving one packet per each class of priority
+  - HOL blocking occurs when an output port is busy, and subsequent packets cannot be sent
 - Routing processor
   - Performs control-plane functions
   - Communicates with remote controller to receive forwarding tables
@@ -490,7 +491,7 @@
   - Switches allow different Ethernet protocols to work together
   - Routers are network-layer (and above) devices, whereas switches are link-layer
 - Virtual local area network (VLAN)
-  - A VLAN is a sub-division of a switched LAN that functions like a single isolated network 
+  - A VLAN is a subdivision of a switched LAN that functions like a single isolated network 
   - The ports on a switch are partitioned into VLANs
   - A VLAN trunk can carry traffic across the VLANs
   - A frame can contain a VLAN tag which identifies VLAN that the frame belongs to
@@ -509,3 +510,70 @@
 - Tier-2 switches connect groups of tier-3 TOR switches and tier-1 switches connect tier-2 switches
 - Load balancers operate at the tier-1 level
 - To enable fast communication within a data center network, switches are highly interconnected so that there is no bottleneck link
+
+# Wireless links
+- Signal-to-noise ratio (SNR): The relative strength of the received signal compared to background noise
+- Bit error rate (BER): Number of bit errors per total bits sent
+- When SNR is higher, BER is lower
+- Higher transmission rate = higher BER
+- CDMA is one of the protocols used for wireless transmission
+  - Data is multiplied by a code
+    - Chipping rate: One bit is subdivided into multiple mini-slots
+    - Each mini-slot is multiplied by the code, and divided by the code at the receiving end to decode
+    - This enables multiple transmissions in the same airwave
+
+# WiFi
+- WiFi is defined in IEEE 802.11
+- Operates in 2.4 GHz and 5.1 GHz
+- Basic service set: One or more wireless stations and a central base station or access point
+- Access point (AP): A device that provides WiFi service, and is connected to a router. Not all wireless stations are APs.
+- Service Set Identifier: An identifier for a WiFi network that is often in a natural language
+- A 2.4 GHz service has 11 partially overlapping channels. Channels 1, 6, and 11 are 4 channels apart, and thus do not overlap each other.
+- Wireless ad hoc network: A peer-to-peer wireless network that does not have a router.
+- Beacon frame: An message that an AP sends to advertise its service
+- Passive scanning vs active scanning for beacon frames
+  - A device can passively listen for beacon frames, which are sent periodically by APs
+  - A device can also request a beacon frame from any APs in the area
+- 802.11 uses CSMA with collision avoidance (CSMA/CA)
+  - Devices that use CSMA/CD are listening to collisions as they are transmitting
+  - Devices that use CSMA/CA do not listen for collisions
+  - Instead, the AP sends an acknowledgement message after receiving a message
+  - If the acknowledgement is not received within a timeframe, a device sends the message again after a binary exponential backoff
+- 802.11 has a reservation scheme using request to send (RTS) and clear to send (CTS) control frames
+- 802.11 frame
+  - Has 4 address fields, which contain the MAC addresses of the wireless station, the AP, and the router
+  - Contains the IP datagram in the payload
+  - The AP is responsible for converting Ethernet frames into 802.11 frames and visa versa
+- Bluetooth can be used to create a wireless network and are called wireless personal area network (WPAN)
+  - Bluetooth uses time-division multiplexing
+  - Unlike WiFi, a Bluetooth network is self-organizing
+  - One centralized controller is designated to manage the network
+
+# Mobility management
+- Home subscriber server (HSS): A database containing information about the cellular subscriber, and is located in the home network.
+- Base station: The cell tower that connects to the user's device
+- PDN gateway and serving gateways: Connects the home network to the visiting network. The PDN is on the home side and serving gateway is on the device's side.
+- Mobility Management Entity (MME): Responsible for connecting to the HSS to retrieve user information and to authenticate the user.
+- LTE mobility connection steps
+  1. Mobile device associates with the nearby base station
+    - The device is identified with an International Mobile Subscriber Identity (IMSI)
+  2. Control-plane configuration in the visiting network
+    - The MME uses the IMSI to look up from its database or contact the HSS for authentication and network service information.
+    - The MME informs the HSS that the user's device is in their network.
+  3. Data-plane configuration in the visiting network
+    - The MME configures a tunnel from the base station to the serving gateway, and to the PDN gateway. 
+- Handoff steps (Current base station is where the device is connected to and target is where the device is moving to)
+  1. The current base station sends a handover request to the target base station
+  2. The target station allocates channel resources, and replies to the current base station with a handover request acknowledge message
+  3. The current base station informs the device of the target station's identity and channel access information. The device switches to the target base station.
+  4. The current base station forwards any packets for the device to the target base station
+  5. The target base station informs the MME that it is serving the device. The MME reconfigures the tunnel to go to the target base station.
+  6. The target base station informs the current base station that the tunnel was configured, so that the current base station can release resources for that device.
+  7. The target base station now starts delivering packets to the device.
+- Mobile IP: Allows mobile devices to move from one network to another while maintaining a permanent IP address
+- Wireless in the application layer
+  - TCP mostly works the same whether on a wired or wireless context
+  - Its congestion control response can be improved in a wireless setting with the following approaches:
+    - Local recovery at the network and link-layer levels using checksums and retransmission
+    - TCP awareness of wireless links, so that congestion control is only triggered by packet loss and not packet corruption
+    - Breaking the end-to-end connection into wired and wireless segments so that error recovery works differently depending on the segment that the error occurred
